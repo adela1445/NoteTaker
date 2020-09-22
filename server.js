@@ -1,98 +1,81 @@
 // Dependencies
 // =============================================================
-var express = require("express");
-var path = require("path");
-var fs = require("fs");
-
-const dataNotes = require("./db/db.json");
+const express = require("express");
+const path = require("path");
+const fs = require("fs");
 // Sets up the Express App
 // =============================================================
-var app = express();
-var PORT = process.env.PORT || 3000;
+// Tells node that we are creating an "express" server
+const app = express();
+
+// Sets an initial port. We"ll use this later in our listener
+const PORT = process.env.PORT || 8080;
 
 // Sets up the Express app to handle data parsing
+app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Routes
-// =============================================================
+// HTML GET Requests
 
-// Basic route that sends the user first to the AJAX Page
-app.get("/", function (req, res) {
-  res.sendFile(path.join(__dirname, "./public/index.html"));
+//Basic route that sends the user to the notes page
+app.get("/notes", (req, res) => {
+  res.sendFile(path.join(path.join(__dirname, "./public"), "notes.html"));
+});
+// Basic route that sends the user first to the Home Page or if user enters nonexistent url
+app.get("*", (req, res) => {
+  res.sendFile(path.join(path.join(__dirname, "./public"), "index.html"));
 });
 
-app.get("/notes", function (req, res) {
-  res.sendFile(path.join(__dirname, "./public/notes.html"));
+// API GET Requests
+// Below code handles when users "visit" a page.
+// In each of the below cases when a user visits a link
+// (ex: localhost:PORT/api/admin... they are shown a JSON of the data in the table)
+// ---------------------------------------------------------------------------
+
+//The user gets sent to the api notes in JSON data
+app.get("/api/notes", function (req, res) {
+  res.sendFile(path.join(__dirname, "./db/db.json"));
+});
+// API: Created the ID in order to specify the note accordingly
+app.get("/api/notes/:id", function (req, res) {
+  let savedNotes = JSON.parse(fs.readFileSync("./db/db.json", "utf8"));
+  res.json(savedNotes[Number(req.params.id)]);
 });
 
-function writeNotes(notes) {
-  notes = JSON.stringify(notes);
-  console.log(notes);
-  fs.writeFileSync("./db/db.json", notes, (err) => {
-    if (err) {
-      throw err;
-    }
+//   POST Request: A new note is received in order to save it on the request body => add it to the db.jsonn => return to client
+app.post("/api/notes", function (req, res) {
+  let savedNotes = JSON.parse(fs.readFileSync("./db/db.json", "utf8"));
+  let newNote = req.body;
+  let uniqueID = savedNotes.length.toString();
+  newNote.id = uniqueID;
+  savedNotes.push(newNote);
+
+  fs.writeFileSync("./db/db.json", JSON.stringify(savedNotes));
+  console.log("Note saved to db.json.");
+  res.json(savedNotes);
+});
+
+//    DELETE Request: Receive param with specified ID => delete note using filter and rewriting currnoteid with new note id
+app.delete("/api/notes/:id", function (req, res) {
+  let savedNotes = JSON.parse(fs.readFileSync("./db/db.json", "utf8"));
+  let noteID = req.params.id;
+  let newID = 0;
+  console.log(`Deleting note with ID ${noteID}`);
+  savedNotes = savedNotes.filter((currNote) => {
+    return currNote.id != noteID;
   });
-}
-// API's
-// GET Request: reads the db.json and returns all saved notes as JSON
 
-app.get("/api/notes", (req, res) => {
-  fs.readFile(path.join(__dirname + "/db/db.json"), (err, data) => {
-    if (err) {
-      throw err;
-    }
-    res.json(dataNotes);
-  });
-});
-
-// POST Request: Receives a new note => save on the request body => adds it to the db.json => returns new note to client
-app.post("/api/notes", (req, res) => {
-  if (dataNotes.length == 0) {
-    req.body.id = "0";
-  } else {
-    req.body.id = JSON.stringify(
-      JSON.parse(dataNotes[dataNotes.length - 1].id) + 1
-    );
+  for (currNote of savedNotes) {
+    currNote.id = newID.toString();
+    newID++;
   }
-  console.log(req.body.id);
 
-  dataNotes.push(req.body);
-
-  writeNotes(dataNotes);
-  console.log(dataNotes);
-  res.json(req.body);
-  // const notes
-  // fs.readFile(path.join(__dirname + "/db/db.json"), (err, data) => {
-  //     if (err) { throw err }
-  //     notes = JSON.parse(data)
-  // });
-  // const newEntryNote = {
-  //     title: req.body.title
-  // }
+  fs.writeFileSync("./db/db.json", JSON.stringify(savedNotes));
+  res.json(savedNotes);
 });
-
-// DELETE Request to remove a note with a unique ID
-
-app.delete("/api/notes/:id", (req, res) => {
-  const idTag = req.params.id.toString();
-  console.log(idTag);
-
-  for (let index = 0; index < dataNotes.length; index++) {
-    if (dataNotes[i].idTag == idTag) {
-      console.log("We got a hit!");
-      res.send(dataNotes[i]);
-
-      dataNotes.splice(i, 1);
-      break;
-    }
-  }
-  writeNotes(dataNotes);
-});
-
 // Starts the server to begin listening
 // =============================================================
 app.listen(PORT, function () {
-  console.log("App listening on PORT " + PORT);
+  console.log(`Now listening to port ${PORT}.`);
 });
