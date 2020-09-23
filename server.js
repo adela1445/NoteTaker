@@ -34,17 +34,17 @@ app.get("*", (req, res) => {
 // ---------------------------------------------------------------------------
 
 //The user gets sent to the api notes in JSON data
-app.get("/api/notes", function (req, res) {
+app.get("/api/notes", (req, res) => {
   res.sendFile(path.join(__dirname, "./db/db.json"));
 });
 // API: Created the ID in order to specify the note accordingly
-app.get("/api/notes/:id", function (req, res) {
+app.get("/api/notes/:id", (req, res) => {
   let savedNotes = JSON.parse(fs.readFileSync("./db/db.json", "utf8"));
   res.json(savedNotes[Number(req.params.id)]);
 });
 
 //   POST Request: A new note is received in order to save it on the request body => add it to the db.jsonn => return to client
-app.post("/api/notes", function (req, res) {
+app.post("/api/notes", (req, res) => {
   let savedNotes = JSON.parse(fs.readFileSync("./db/db.json", "utf8"));
   let newNote = req.body;
   let uniqueID = savedNotes.length.toString();
@@ -57,7 +57,7 @@ app.post("/api/notes", function (req, res) {
 });
 
 //    DELETE Request: Receive param with specified ID => delete note using filter and rewriting currnoteid with new note id
-app.delete("/api/notes/:id", function (req, res) {
+app.delete("/api/notes/:id", (req, res) => {
   let savedNotes = JSON.parse(fs.readFileSync("./db/db.json", "utf8"));
   let noteID = req.params.id;
   let newID = 0;
@@ -76,6 +76,6 @@ app.delete("/api/notes/:id", function (req, res) {
 });
 // Starts the server to begin listening
 // =============================================================
-app.listen(PORT, function () {
+app.listen(PORT, () => {
   console.log(`Now listening to port ${PORT}.`);
 });
