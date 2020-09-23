@@ -32,7 +32,7 @@ https://secret-journey-93182.herokuapp.com/
 
 - A video demonstrating the entirety of the app's functionality
 
-  <img src ="assets\DemoTerminal.gif" width ="900">
+  <img src ="public\assets\images\Note Taker.gif" width ="900">
 
 * The URL of the GitHub repository
 
