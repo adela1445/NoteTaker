@@ -10,6 +10,7 @@ const app = express();
 
 // Sets an initial port. We"ll use this later in our listener
 const PORT = process.env.PORT || 8080;
+const mainDir = path.join(__dirname, "/public");
 
 // Sets up the Express app to handle data parsing
 app.use(express.static("public"));
@@ -23,7 +24,7 @@ app.get("/notes", (req, res) => {
   res.sendFile(path.join(path.join(__dirname, "./public"), "notes.html"));
 });
 // Basic route that sends the user first to the Home Page or if user enters nonexistent url
-app.get("*", (req, res) => {
+app.get("/", (req, res) => {
   res.sendFile(path.join(path.join(__dirname, "./public"), "index.html"));
 });
 
